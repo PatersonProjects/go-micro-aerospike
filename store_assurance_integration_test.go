@@ -17,7 +17,7 @@ import (
 
 // rawClient returns the test store's Aerospike client for direct record
 // manipulation. Fault states are crafted with the raw client because the
-// store exposes no write-path injection seam (see TESTING.md section 3).
+// store exposes no write-path injection seam.
 func rawClient(t *testing.T, s store.Store) *aero.Client {
 	t.Helper()
 	return s.(*aerospikeStore).client
@@ -91,7 +91,7 @@ func hasVersion(versions []string, v string) bool {
 // The store has no write-path fault-injection seam, so failure STATES are
 // crafted with the raw client (partial chunk sets, uncommitted versions,
 // orphaned chunks) and the contract invariants are asserted against the real
-// server. See TESTING.md "Reported package defects / testability boundaries".
+// server.
 
 // TestPartialChunkWritePreservesOld crafts the state left by a chunk batch
 // that fails part way: some v2 chunks written, head still v1.
@@ -437,8 +437,7 @@ func TestReadPrefixRetryAgainstWriter(t *testing.T) {
 // semantics: a head deleted between selection and fetch is omitted.
 // There is no hook between listKeys and BatchGet, so the disappearance window
 // cannot be forced deterministically; this test verifies the steady-state
-// half (deleted records are simply absent from the page). The injection
-// boundary is reported in TESTING.md as a testability gap.
+// half (deleted records are simply absent from the page).
 func TestReadSelectedHeadDisappears(t *testing.T) {
 	s := newTestStore(t)
 	tab := fmt.Sprintf("dh-%d", time.Now().UnixNano())

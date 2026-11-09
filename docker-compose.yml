@@ -1,6 +1,11 @@
 services:
   aerospike:
     image: aerospike/aerospike-server:8.1.2.4@sha256:65478a14549894cb903783a973f6801c327c12de95c3dd147a92f085df4f9717
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
     ports:
       - "127.0.0.1:${AEROSPIKE_PORT:-3100}:3000"
       - "127.0.0.1:${AEROSPIKE_FABRIC_PORT:-3101}:3001"

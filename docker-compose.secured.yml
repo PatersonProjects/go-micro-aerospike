@@ -4,6 +4,8 @@
 services:
   tls-certs-init:
     image: &tls-image ${AEROSPIKE_TLS_IMAGE:-aerospike/aerospike-server-enterprise:8.2.0.1@sha256:ac93616c66bda965098b65a4138df585987fb27daf5b77b8882119f7904a9a60}
+    cap_drop:
+      - ALL
     entrypoint: ["timeout", "120", "sh", "/scripts/gen-tls-certs.sh"]
     environment:
       AEROSPIKE_TLS_CERT_DIR: /certs
@@ -13,6 +15,11 @@ services:
 
   aerospike-tls:
     image: *tls-image
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
     depends_on:
       tls-certs-init:
         condition: service_completed_successfully
@@ -39,6 +46,8 @@ services:
 
   tls-provision:
     image: *tls-image
+    cap_drop:
+      - ALL
     entrypoint: ["timeout", "60", "sh", "/scripts/provision-tls-users.sh"]
     environment:
       AEROSPIKE_TLS_HOST: aerospike-tls

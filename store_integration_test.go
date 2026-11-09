@@ -226,6 +226,36 @@ func TestListPrefixMetacharacters(t *testing.T) {
 	}
 }
 
+func TestQueryTableNamesAreLiteral(t *testing.T) {
+	s := newTestStore(t)
+	run := fmt.Sprintf("literal-%d", time.Now().UnixNano())
+	tables := []string{run, run + "' OR '1'='1", run + "; DROP TABLE micro;--", run + ".*|.*"}
+	for i, tab := range tables {
+		if err := s.Write(&store.Record{Key: fmt.Sprintf("key.%d", i), Value: []byte(tab)}, store.WriteTo("test", tab)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for i, tab := range tables {
+		t.Run(tab, func(t *testing.T) {
+			want := fmt.Sprintf("key.%d", i)
+			keys, err := s.List(store.ListFrom("test", tab))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(keys) != 1 || keys[0] != want {
+				t.Fatalf("got %v, want only %q", keys, want)
+			}
+			recs, err := s.Read("key.", store.ReadFrom("test", tab), store.ReadPrefix())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(recs) != 1 || recs[0].Key != want || string(recs[0].Value) != tab {
+				t.Fatalf("read did not preserve table isolation: %v", recs)
+			}
+		})
+	}
+}
+
 func TestEmptyTableProbe(t *testing.T) {
 	s := newTestStore(t)
 	tab := fmt.Sprintf("empty-%d", time.Now().UnixNano())
